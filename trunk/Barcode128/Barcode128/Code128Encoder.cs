@@ -8,7 +8,7 @@ namespace Barcode128
 {
     public static class Code128Encoder
     {
-        static int CurrentType = Common.StartCharB;
+        static int CurrentType = Common._StartCharB;
 
         //Ascii value - 32 = Code128 index
         public static readonly List<string> Code128 = new List<string>
@@ -157,7 +157,7 @@ namespace Barcode128
                 return GetCodePattern( Text[i] );
             }
 
-            if( CurrentType != Common.CodeC && CurrentType != Common.StartCharC )
+            if( CurrentType != Common._CodeC && CurrentType != Common._StartCharC )
                 return GetCodeForCharacter( Text[i] );
             
             return GetCodeForDigits( Text, ref i );

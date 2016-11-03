@@ -8,98 +8,84 @@ namespace Barcode128
 {
     public static class Code128FlagEmbedder
     {
-        public static string EmbedCodeFlags( string Text )
+        public static string EmbedCodeFlags( string text )
         {
-            string result = GetStartCodeType( Text ).ToString();
+            var ControlCodes = GetControlCodeMarkers( text );
+            foreach( var c in ControlCodes.Reverse() )
+                text = text.Insert( c.Key, ((char)(c.Value)).ToString() );
 
-            int ACount = 0;
-            int BCount = 0;
-            int CCount = 0;
-            int APos = -1;
-            int BPos = -1;
-            int CPos = -1;
+            if( text.StartsWith( Common.EmbedCodeB.ToString() ) ) text = Common.StartEmbedB + text.TrimStart( Common.EmbedCodeB.ToString().ToCharArray() );
+            if( text.StartsWith( Common.EmbedCodeC.ToString() ) ) text = Common.StartEmbedC + text.TrimStart( Common.EmbedCodeC.ToString().ToCharArray() );
 
-            for( int i = 0; i < Text.Length; ++i )
+            return text;
+        }
+
+        private static Dictionary<int, int> GetControlCodeMarkers( string text )
+        {
+            int numcount = 0;
+            int CurrentCode = 0;
+            Dictionary<int, int> result = new Dictionary<int, int>();
+
+            if( TextIsAllLettersOrDigits( text ) ) return TextIsPure( text );
+
+            string FirstFour = text.Substring( 0, 4 );
+            if( FirstFour.All( char.IsDigit ) )
             {
-                var CharType = GetCharValueType( Text[i] );
+                result.Add( 0, Common.StartEmbedC );
+                CurrentCode = Common.EmbedCodeC;
+            }
 
-                if( CharType == "C" )
+            for( int i = 0; i < text.Length; ++i )
+            {
+                if( char.IsDigit( text[i] ) ) ++numcount;
+                else if( char.IsLetter( text[i] ) )
                 {
-                    ++CCount;
-                    CPos = i;
-                }
-                else if( CharType == "B" )
-                {
-                    ++BCount;
-                    BPos = i;
-                }
-                else
-                {
-                    ++ACount;
-                    APos = i;
+                    if( numcount >= 6 )
+                    {
+                        if( CurrentCode != Common.EmbedCodeC )
+                        {
+                            CurrentCode = Common.EmbedCodeC;
+                            result.Add( (i + 1) - (1 + numcount - (numcount % 2)), CurrentCode );
+                        }
+                    }
+
+                    if( CurrentCode != Common.EmbedCodeB )
+                    {
+                        CurrentCode = Common.EmbedCodeB;
+                        result.Add( (i + 1) - 1, CurrentCode );
+                    }
+                    numcount = 0;
                 }
             }
+
+            if( numcount >= 4 && CurrentCode != Common.EmbedCodeC )
+                result.Add( text.Length - (numcount - (numcount % 2)), Common.EmbedCodeC );
 
             return result;
         }
 
-        private static char GetStartCodeType( string Text )
+        private static bool TextIsAllLettersOrDigits( string text )
         {
-            int ACount = 0;
-            int BCount = 0;
-
-            if( ShouldUseStartCodeC( Text ) ) return Common.StartEmbedC;
-
-            foreach( char c in Text )
-            {
-                if( GetCharValueType( c ) == "B" ) ++BCount;
-                else ++ACount;
-
-                if( ACount >= 3 || BCount >= 3 ) break;
-            }
-
-            if( BCount > ACount ) return Common.StartEmbedB;
-            else return Common.StartEmbedA;
+            return text.All( char.IsDigit ) || text.All( char.IsLetter );
         }
 
-        public static bool ShouldUseStartCodeC( string Text )
+        private static Dictionary<int, int> TextIsPure( string text )
         {
-            int CCount = 0;
+            Dictionary<int, int> result = new Dictionary<int, int>();
 
-            for( int i = 0; i < Text.Length; ++i )
+            if( text.All( char.IsDigit ) )
             {
-                if( !Common.CharIsNumber( Text[i] ) ) break;
-                ++CCount;
+                if( text.Length % 2 == 0 )
+                    result.Add( 0, Common.StartEmbedC );
+                else
+                {
+                    result.Add( 0, Common.StartEmbedC );
+                    result.Add( text.Length - 1, Common.EmbedCodeB );
+                }
             }
 
-            if( CCount == Text.Length || CCount >= 4 ) return true;
-            return false;
-        }
-
-        public static bool ShouldSwitchToC( string Text )
-        {
-            int CCount = 0;
-
-            for( int i = 0; i < Text.Length; ++i )
-            {
-                if( !Common.CharIsNumber( Text[i] ) ) CCount = 0;
-                else ++CCount;
-
-                //if( CCount >= 6 )
-            }
-
-            return false;
-        }
-
-        public static string GetCharValueType( char Character )
-        {
-            int value = (int)Character;
-            if( value < 0 ) throw new Exception( "Invalid character type" );
-
-
-            if( Common.CharIsNumber( Character ) ) return "C";
-            if( value >= 32 ) return "B";
-            else return "A";
+            if( text.All( char.IsLetter ) ) result.Add( 0, Common.StartEmbedB );
+            return result;
         }
     }
 }

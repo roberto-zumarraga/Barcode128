@@ -9,22 +9,22 @@ namespace Barcode128
     public static class Common
     {
         public const int ShiftAB = 98;
-        public const int CodeC = 99;
-        public const int CodeB = 100;
-        public const int CodeA = 101;
+        public const int _CodeC = 99;
+        public const int _CodeB = 100;
+        public const int _CodeA = 101;
 
-        public const int StartCharA = 103;
-        public const int StartCharB = 104;
-        public const int StartCharC = 105;
+        public const int _StartCharA = 103;
+        public const int _StartCharB = 104;
+        public const int _StartCharC = 105;
         public const int StopChar = 106;
 
-        public const char StartEmbedA = (char)(StartCharA + 532);
-        public const char StartEmbedB = (char)(StartCharB + 532);
-        public const char StartEmbedC = (char)(StartCharC + 532);
+        public const char StartEmbedA = (char)(_StartCharA + 532);
+        public const char StartEmbedB = (char)(_StartCharB + 532);
+        public const char StartEmbedC = (char)(_StartCharC + 532);
         public const char EmbedABShift = (char)(ShiftAB + 532);
-        public const char EmbedCodeC = (char)(CodeC + 532);
-        public const char EmbedCodeB = (char)(CodeB + 532);
-        public const char EmbedCodeA = (char)(CodeA + 532);
+        public const char EmbedCodeC = (char)(_CodeC + 532);
+        public const char EmbedCodeB = (char)(_CodeB + 532);
+        public const char EmbedCodeA = (char)(_CodeA + 532);
 
         public static bool CharIsNumber( char c )
         {
